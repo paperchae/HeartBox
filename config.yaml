@@ -1,0 +1,59 @@
+---
+debug: True
+
+preprocess:
+  idx_path: '../data/index/'
+  waveform_path: '../data/waveform/'
+  save_path: '../data/preprocessed/'    # Path for saving preprocessed data
+  mimic:
+    clinical_path: '../data/MIMIC/Clinical/ ---rest of the path'
+    ecg_path: '../data/MIMIC/ECG/mimic-iv-ecg-diagnostic-electrocardiogram-matched-subset-1.0/'
+  flag: False                           # If True, preprocess will be executed before training
+  all: True                             # If True, all data will be preprocessed
+  multi: False                          # If debugging with Pycharm,
+                                        # goto "Settings"->"Debugger"->"Python Debugger"->Set Gevent Compatible True
+  data:                                 # configs for splitting data for preprocessing
+    internal: False                     # If True, internal data will be preprocessed
+    train: False                        # If True, train data will be preprocessed (only for internal data)
+    af: True                            # If True, AFIB_OR_AFL data will be selected
+    time: 10                            # Length of time for each data, used for checking preprocessed data length
+
+  option:
+    augment: True                       # If True, data augmentation will be executed
+                                        # (only for AFIB_OR_AFL data, by four times using different preprocessing steps)
+    target_fs: 125                      # Target sampling rate for resampling
+    detrend: baseline                   # baseline for ECG, total for PPG and ABP
+    denoise: soft                       # soft, hard
+    normalize: minmax                   # minmax, zscore
+
+train:
+  model_save_path: 'models/'            # Path for saving model
+
+  general:
+    load_augmented: True                # If True, augmented data will be loaded for training sequence
+    split_ratio: 0.8                    # Ratio for train and validation split
+    number_of_classes: 2                # Number of classes for classification
+    epochs: 200
+    early_stop_n: 10                    # Number of epochs for early stopping
+    loss_fn: BCEWithLogitsLoss          # BCEWithLogitsLoss
+    batch_size: 512
+
+  hyperparameter:
+    in_channels: 1                      # Number of channels for input data
+    out_channels: 32                    # Number of channels for first convolution layer
+    dropout: 0.25
+    lr: 0.001
+    weight_decay: 0.1
+    gamma: 0.99
+
+test:
+  batch_size: 512
+  metrics: ['AUROC', 'Sensitivity', 'Specificity', 'Accuracy', 'Precision', 'Recall', 'F1-score']
+  threshold: 0.5                        # Threshold for binary classification
+  save_path: 'results/'
+
+wandb:
+  flag: False                           # If True, log will be sent to wandb
+  project: VUNO
+  entity: paperchae
+

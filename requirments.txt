@@ -1,0 +1,22 @@
+
+
+** Environment **
+OS==Ubuntu 20.04 LTS
+CPU==Intel i9 12900K
+Graphic Card==NVIDIA RTX 3090TI
+Driver Version==525.125.06
+CUDA Version==11.3
+cuDNN Version==8.2.1
+
+
+** Dependencies **
+python==3.8.13
+torch==1.12.1
+numpy==1.21.5
+pandas==1.4.3
+scikit-learn==1.1.1
+h5py==3.7.0
+tqdm==4.64.0
+multiprocess==0.70.14
+seaborn==0.12.2
+wandb==0.13.4
