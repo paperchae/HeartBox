@@ -2,12 +2,13 @@
 debug: True
 
 preprocess:
-  idx_path: '../data/index/'
-  waveform_path: '../data/waveform/'
-  save_path: '../data/preprocessed/'    # Path for saving preprocessed data
+  root_path: '/ssd/ssd0/data/'
+  idx_path: 'index/'
+  waveform_path: 'waveform/'
+  save_path: 'preprocessed/'    # Path for saving preprocessed data
   mimic:
-    clinical_path: '../data/MIMIC/Clinical/ ---rest of the path'
-    ecg_path: '../data/MIMIC/ECG/mimic-iv-ecg-diagnostic-electrocardiogram-matched-subset-1.0/'
+    clinical_path: 'MIMIC/Clinical/mimic-iv-2.2/'
+    ecg_path: 'MIMIC/ECG/mimic-iv-ecg-diagnostic-electrocardiogram-matched-subset-1.0/'
   flag: False                           # If True, preprocess will be executed before training
   all: True                             # If True, all data will be preprocessed
   multi: False                          # If debugging with Pycharm,
