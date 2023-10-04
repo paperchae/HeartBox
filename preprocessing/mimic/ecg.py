@@ -67,7 +67,7 @@ class ECG:
                 if len(studies) >= study_num:
                     patient_over_n_study.append(int(patient[1:]))
 
-                    test = ['/'.join([patient, study_id]) for study_id in studies]
+                    # test = ['/'.join([patient, study_id]) for study_id in studies]
 
             return patient_over_n_study
 

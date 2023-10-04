@@ -9,28 +9,33 @@ import numpy as np
 from utils.wfdb_funcs import get_ecg_idx
 from utils.pandas_utils import *
 from mimic.ecg import ECG
-from mimic.clinical import icu, hosp
+from mimic.clinical.icu import ICU
+from mimic.clinical.hosp import HOSP
 
 
 class Clinical:
     """
     subject list를 받아서 clinical data를 읽어오는 class
     """
+
     def __init__(self, subject_list):
-        c
-        self.icu = icu
-        # self.hosp = hosp
-        self.icu_df = icu_df
-        self.hosp_df = hosp_df
+        cfg = get_config('../config.yaml')
+        clinical_path = cfg.preprocess.root_path + cfg.preprocess.mimic.clinical_path
+        icu_path = clinical_path + 'icu/'
+        hosp_path = clinical_path + 'hosp/'
+        self.hosp = HOSP(hosp_path, subject_list)
+        self.icu = ICU(icu_path, subject_list)
+        self.test = 'test'
 
     def merge_icu_hosp(self):
-        pass
+        temp = self.icu.read_chartevents()
 
 
 class Patient:
     """
     subject_id 를 받아서 subject_id 에 해당하는 정보를 읽어오는 class
     """
+
     def __init__(self, subject_id):
         self.id = subject_id
 
@@ -67,7 +72,17 @@ if __name__ == '__main__':
     machine_df = ecg.machine_df
     note_df = ecg.note_df
 
-    target_patients = ecg.get_patient_over_n_study(studies_per_patient, study_num=3)
+    study_list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
+    for s in study_list:
+        target_patients = ecg.get_patient_over_n_study(studies_per_patient, study_num=s)
+        # save target patients to csv
+        target_patients_df = pd.DataFrame(target_patients)
+        target_patients_df.to_csv(root_path + 'target_patients_{}.csv'.format(s))
+        print('TEST')
+    target_patients = ecg.get_patient_over_n_study(studies_per_patient, study_num=10)
+    clinical = Clinical(target_patients)
+    clinical.merge_icu_hosp()
+
     for t in target_patients:
         id = t
         p = Patient(id)
