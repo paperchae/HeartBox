@@ -8,9 +8,9 @@ import numpy as np
 
 from utils.wfdb_funcs import get_ecg_idx
 from utils.pandas_utils import *
-from mimic.ecg import ECG
-from mimic.clinical.icu import ICU
-from mimic.clinical.hosp import HOSP
+from preprocessing.mimic.ecg import ECG
+from preprocessing.mimic.clinical.icu import ICU
+from preprocessing.mimic.clinical.hosp import HOSP
 
 
 class Clinical:
