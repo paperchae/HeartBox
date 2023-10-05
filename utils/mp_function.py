@@ -7,6 +7,7 @@ import pandas as pd
 from tqdm import tqdm
 
 import warnings
+
 warnings.filterwarnings("ignore")
 
 
@@ -27,12 +28,14 @@ def get_process_num(segment_num: int) -> int:
                 divisors.append(segment_num // i)
     available_divisor = [x for x in divisors if x < os.cpu_count()]
 
-    return int(os.cpu_count() * 0.6) if np.max(available_divisor) < os.cpu_count() // 2 else np.max(available_divisor)
+    return (
+        int(os.cpu_count() * 0.6)
+        if np.max(available_divisor) < os.cpu_count() // 2
+        else np.max(available_divisor)
+    )
 
 
-def augmentation_integrity_checker(fname_total,
-                                   sex_total,
-                                   age_total) -> None:
+def augmentation_integrity_checker(fname_total, sex_total, age_total) -> None:
     """
     To guarantee the order of the data when augmenting data using multiprocessing.
     It checks whether the data is augmented in the same order as the original data.
@@ -45,7 +48,9 @@ def augmentation_integrity_checker(fname_total,
     :return:
     """
     wrong_idx = []
-    for f in tqdm(list(set(fname_total)), desc='Checking Augmentation Index Integrity...'):
+    for f in tqdm(
+        list(set(fname_total)), desc="Checking Augmentation Index Integrity..."
+    ):
         if len(list(set(sex_total[fname_total == f]))) != 1:
             # print(sex_total[fname_total == f])
             # print(fname_total[fname_total == f])
@@ -61,16 +66,15 @@ def augmentation_integrity_checker(fname_total,
             else:
                 wrong_idx.append(f)
     if len(wrong_idx) == 0:
-        print('*** Index Integrity Check Passed ***')
+        print("*** Index Integrity Check Passed ***")
     else:
-        print('Wrong Index: {}, Set preprocess.multi to False'.format(wrong_idx))
-        raise ValueError('*** Index Integrity Check Failed ***')
+        print("Wrong Index: {}, Set preprocess.multi to False".format(wrong_idx))
+        raise ValueError("*** Index Integrity Check Failed ***")
 
 
-def multi_process(target_function,
-                  patient_df: pd.DataFrame,
-                  preprocess_cfg,
-                  debug_flag: bool = False) -> tuple:
+def multi_process(
+    target_function, patient_df: pd.DataFrame, preprocess_cfg, debug_flag: bool = False
+) -> tuple:
     """
     1. Split the patient_df into process_num
     2. Run target_function in parallel
@@ -88,7 +92,7 @@ def multi_process(target_function,
         process_num = get_process_num(len(patient_df))
     else:
         process_num = 1
-    print('process_num: {}'.format(process_num))
+    print("process_num: {}".format(process_num))
 
     target_length = preprocess_cfg.option.target_fs * preprocess_cfg.data.time
     patients_per_process = np.array_split(patient_df, process_num)
@@ -101,15 +105,22 @@ def multi_process(target_function,
         sex_per_process = manager.list()
         age_per_process = manager.list()
 
-        workers = [mp.Process(target=target_function,
-                              args=(process_i,
-                                    patients_per_process[process_i],
-                                    ecg_per_process,
-                                    fname_per_process,
-                                    sex_per_process,
-                                    age_per_process,
-                                    preprocess_cfg,
-                                    debug_flag)) for process_i in range(process_num)]
+        workers = [
+            mp.Process(
+                target=target_function,
+                args=(
+                    process_i,
+                    patients_per_process[process_i],
+                    ecg_per_process,
+                    fname_per_process,
+                    sex_per_process,
+                    age_per_process,
+                    preprocess_cfg,
+                    debug_flag,
+                ),
+            )
+            for process_i in range(process_num)
+        ]
 
         for worker in workers:
             worker.start()
@@ -122,7 +133,7 @@ def multi_process(target_function,
         age_total = np.concatenate(age_per_process)
 
         assert ecg_total.shape[-1] == target_length
-        print('--- %s seconds ---' % (time.time() - start_time))
+        print("--- %s seconds ---" % (time.time() - start_time))
         manager.shutdown()
 
     augmentation_integrity_checker(fname_total, sex_total, age_total)

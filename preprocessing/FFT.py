@@ -2,7 +2,7 @@ import torch
 
 
 class FFT:
-    def __init__(self, input_sig, fs=60.):
+    def __init__(self, input_sig, fs=60.0):
         self.input_sig = input_sig
         self.fs = fs
 
@@ -14,7 +14,8 @@ class FFT:
         freq = torch.fft.rfftfreq(self.input_sig.shape[-1], 1 / self.fs)
         if plot:
             import matplotlib.pyplot as plt
-            plt.title('FFT')
+
+            plt.title("FFT")
             plt.plot(freq, amp)
             plt.grid(True)
             plt.show()

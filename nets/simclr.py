@@ -1,7 +1,7 @@
 import torch
 
-class SimCLR(torch.nn.Module):
 
+class SimCLR(torch.nn.Module):
     def __init__(self, cfg) -> None:
         super(SimCLR, self).__init__()
         self.cfg = cfg
@@ -9,5 +9,7 @@ class SimCLR(torch.nn.Module):
         self.out_channels = 10
 
         self.enconv1 = torch.nn.Sequential(
-            torch.nn.Conv1d(self.in_channels, self.out_channels, kernel_size=5, stride=1)
+            torch.nn.Conv1d(
+                self.in_channels, self.out_channels, kernel_size=5, stride=1
+            )
         )

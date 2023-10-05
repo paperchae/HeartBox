@@ -19,14 +19,15 @@ def find_channel_idx(path):
     #     if tc in channel_names:
     #         channel_idx.append([i for i in range(len(channel_names)) if channel_names[i] == tc][0])
 
-    ple_idx = [p for p in range(len(channel_names)) if channel_names[p] == 'PLETH'][0]
-    abp_idx = [a for a in range(len(channel_names)) if channel_names[a] == 'ABP'][0]
+    ple_idx = [p for p in range(len(channel_names)) if channel_names[p] == "PLETH"][0]
+    abp_idx = [a for a in range(len(channel_names)) if channel_names[a] == "ABP"][0]
     # try:
     #     ecg_idx = [e for e in range(len(channel_names)) if channel_names[e] == 'II'][0]
     # except:
     #     ecg_idx = -1
 
     return [ple_idx, abp_idx]
+
 
 def get_ecg_idx(path, lead: list):
     """
@@ -45,9 +46,10 @@ def get_ecg_idx(path, lead: list):
 
     return lead_idx
 
+
 def get_channel_record(segment_path: str, channel_idx: int):
-    if '.hea' in segment_path:
-        segment_path = segment_path.replace('.hea', '')
+    if ".hea" in segment_path:
+        segment_path = segment_path.replace(".hea", "")
 
     record = wfdb.rdrecord(segment_path, channels=[channel_idx])
     digital_sig = np.squeeze(record.adc())

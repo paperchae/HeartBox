@@ -9,8 +9,15 @@ np.random.seed(42)
 
 
 class ECGDataset(Dataset):
-    def __init__(self, ecg, label, pid, device, transform: Optional[Callable] = None,
-                 target_transform: Optional[Callable] = None) -> None:
+    def __init__(
+        self,
+        ecg,
+        label,
+        pid,
+        device,
+        transform: Optional[Callable] = None,
+        target_transform: Optional[Callable] = None,
+    ) -> None:
         self.ecg = ecg
         self.label = torch.FloatTensor(label)
         self.pid = pid
@@ -60,12 +67,12 @@ class ToTensor:
 
     def __call__(self, x: Any) -> torch.Tensor:
         # print('ToTensor')
-        if self.dtype == 'float':
+        if self.dtype == "float":
             x = torch.FloatTensor(x)
-        elif self.dtype == 'long':
+        elif self.dtype == "long":
             x = torch.LongTensor(x)
         else:
-            raise ValueError(f'Invalid type: {self.dtype}')
+            raise ValueError(f"Invalid type: {self.dtype}")
         return x
 
 
@@ -121,7 +128,7 @@ class RandomCrop:
         # TODO: Implement RandomCrop function which randomly crops signal with specified size
         size = int(x.shape[-1] * self.ratio)
         offset = np.random.randint(0, x.shape[-1] - size)
-        return x[offset:offset + size]
+        return x[offset : offset + size]
 
         # return NotImplemented
 
@@ -134,7 +141,7 @@ class RandomMask:
         mask_size = int(x.shape[-1] * self.ratio)
         offset = np.random.randint(0, x.shape[-1] - mask_size)
         if np.random.rand() < 0.5:
-            x[offset:offset + mask_size] = 0
+            x[offset : offset + mask_size] = 0
         return x
 
 
@@ -158,6 +165,7 @@ class RandomHorizontalFlip:
             x = torch.fliplr(x.view(1, -1)).view(-1)
         return x
 
+
 class RandomNoise:
     def __init__(self, ratio=0.5):
         self.ratio = ratio
@@ -167,6 +175,8 @@ class RandomNoise:
         if np.random.rand() < self.ratio:
             x = x + torch.randn(x.shape) * 0.01
         return x
+
+
 # composed = Compose([ToTensor('float'), RandomCrop(0.7)])
 # import numpy as np
 #

@@ -8,11 +8,18 @@ def init(cfg) -> None:
     :param cfg: project, entity, batch_size, lr, gamma, weight_decay
     :return: None
     """
-    wandb.init(project=cfg.wandb.project, entity=cfg.wandb.entity,
-               name='batch:' + str(cfg.train.general.batch_size) +
-                    '_lr:' + str(cfg.train.hyperparameter.lr) +
-                    '_gamma:' + str(cfg.train.hyperparameter.gamma) +
-                    '_weight_decay:' + str(cfg.train.hyperparameter.weight_decay))
+    wandb.init(
+        project=cfg.wandb.project,
+        entity=cfg.wandb.entity,
+        name="batch:"
+        + str(cfg.train.general.batch_size)
+        + "_lr:"
+        + str(cfg.train.hyperparameter.lr)
+        + "_gamma:"
+        + str(cfg.train.hyperparameter.gamma)
+        + "_weight_decay:"
+        + str(cfg.train.hyperparameter.weight_decay),
+    )
 
 
 def log_train_valid(train_loss, valid_loss, epoch, loss_fn, log_flag) -> None:
@@ -27,9 +34,13 @@ def log_train_valid(train_loss, valid_loss, epoch, loss_fn, log_flag) -> None:
     :return: None
     """
     if log_flag:
-        wandb.log({"train_{}_loss".format(str(loss_fn)): train_loss,
-                   "valid_{}_loss".format(str(loss_fn)): valid_loss},
-                  step=epoch)
+        wandb.log(
+            {
+                "train_{}_loss".format(str(loss_fn)): train_loss,
+                "valid_{}_loss".format(str(loss_fn)): valid_loss,
+            },
+            step=epoch,
+        )
     else:
         pass
 
@@ -45,7 +56,6 @@ def log_test(test_loss, epoch, loss_fn, log_flag) -> None:
     :return: None
     """
     if log_flag:
-        wandb.log({"test_{}_loss".format(str(loss_fn)): test_loss},
-                  step=epoch)
+        wandb.log({"test_{}_loss".format(str(loss_fn)): test_loss}, step=epoch)
     else:
         pass

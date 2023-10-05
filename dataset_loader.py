@@ -3,17 +3,28 @@ import h5py
 import numpy as np
 import pandas as pd
 from torch.utils.data import DataLoader
-from ECGDataset import ECGDataset, Compose, ToTensor, Standardize, RandomCrop, RandomMask, RandomVerticalFlip, \
-    RandomHorizontalFlip, RandomNoise
+from ECGDataset import (
+    ECGDataset,
+    Compose,
+    ToTensor,
+    Standardize,
+    RandomCrop,
+    RandomMask,
+    RandomVerticalFlip,
+    RandomHorizontalFlip,
+    RandomNoise,
+)
 import utils.visualization as vis
 
 
-def dataset_loader(internal: bool = True,
-                   load_augmented: bool = True,
-                   split_ratio: float = 0.8,
-                   train: bool = True,
-                   batch_size: int = 512,
-                   device: Any = None):
+def dataset_loader(
+    internal: bool = True,
+    load_augmented: bool = True,
+    split_ratio: float = 0.8,
+    train: bool = True,
+    batch_size: int = 512,
+    device: Any = None,
+):
     """
     Load Dataset for Training, Validation, Test according to the parameters
     * Internal Train Dataset is divided into Train, Validation Dataset for Training
@@ -32,27 +43,33 @@ def dataset_loader(internal: bool = True,
     train_shuffle = True
     test_shuffle = False
     if internal:
-        mode = 'train' if train else 'test'
+        mode = "train" if train else "test"
         if load_augmented:
-            dataset_root_path = 'data/preprocessed/internal/{}_augmented_af.hdf5'.format(mode)
+            dataset_root_path = "data/preprocessed/internal/{}_augmented_af.hdf5".format(
+                mode
+            )
         else:
-            dataset_root_path = 'data/preprocessed/internal/{}_af.hdf5'.format(mode)
-        dataset_root_path2 = 'data/preprocessed/internal/{}_normal.hdf5'.format(mode)
+            dataset_root_path = "data/preprocessed/internal/{}_af.hdf5".format(mode)
+        dataset_root_path2 = "data/preprocessed/internal/{}_normal.hdf5".format(mode)
     else:  # external data
-        dataset_root_path = 'data/preprocessed/external/test.hdf5'
+        dataset_root_path = "data/preprocessed/external/test.hdf5"
         dataset_root_path2 = None
 
-    with h5py.File(dataset_root_path, 'r') as true_data:
-        ecg_af, label_af, age_af, idx_af = np.array(true_data['ecg']), \
-                                           np.array(true_data['label']), \
-                                           np.array(true_data['age']), \
-                                           np.array(true_data['file_name'])
+    with h5py.File(dataset_root_path, "r") as true_data:
+        ecg_af, label_af, age_af, idx_af = (
+            np.array(true_data["ecg"]),
+            np.array(true_data["label"]),
+            np.array(true_data["age"]),
+            np.array(true_data["file_name"]),
+        )
     if dataset_root_path2 is not None:
-        with h5py.File(dataset_root_path2, 'r') as false_data:
-            ecg_normal, label_normal, age_normal, idx_normal = np.array(false_data['ecg']), \
-                                                               np.array(false_data['label']), \
-                                                               np.array(false_data['age']), \
-                                                               np.array(false_data['file_name'])
+        with h5py.File(dataset_root_path2, "r") as false_data:
+            ecg_normal, label_normal, age_normal, idx_normal = (
+                np.array(false_data["ecg"]),
+                np.array(false_data["label"]),
+                np.array(false_data["age"]),
+                np.array(false_data["file_name"]),
+            )
         ecg = np.concatenate((ecg_af, ecg_normal), axis=0)
         label = np.concatenate((label_af, label_normal), axis=0)
         age = np.concatenate((age_af, age_normal), axis=0)
@@ -87,35 +104,72 @@ def dataset_loader(internal: bool = True,
             valid_age.append(val_temp[1])
             valid_idx.append(val_temp[2])
 
-        train_ecg, valid_ecg = np.concatenate(train_ecg, axis=0), np.concatenate(valid_ecg, axis=0)
-        train_label, valid_label = np.concatenate(train_label, axis=0), np.concatenate(valid_label, axis=0)
-        train_age, valid_age = np.concatenate(train_age, axis=0), np.concatenate(valid_age, axis=0)
-        train_idx, valid_idx = np.concatenate(train_idx, axis=0), np.concatenate(valid_idx, axis=0)
+        train_ecg, valid_ecg = (
+            np.concatenate(train_ecg, axis=0),
+            np.concatenate(valid_ecg, axis=0),
+        )
+        train_label, valid_label = (
+            np.concatenate(train_label, axis=0),
+            np.concatenate(valid_label, axis=0),
+        )
+        train_age, valid_age = (
+            np.concatenate(train_age, axis=0),
+            np.concatenate(valid_age, axis=0),
+        )
+        train_idx, valid_idx = (
+            np.concatenate(train_idx, axis=0),
+            np.concatenate(valid_idx, axis=0),
+        )
 
-        vis.train_validation_dataset_distribution(train_age, train_label, valid_age, valid_label)
+        vis.train_validation_dataset_distribution(
+            train_age, train_label, valid_age, valid_label
+        )
 
-        train_dataset = ECGDataset(train_ecg, train_label, train_idx, device,
-                                   transform=Compose([ToTensor('float'), Standardize()]))
-        valid_dataset = ECGDataset(valid_ecg, valid_label, valid_idx, device,
-                                   transform=Compose([ToTensor('float'), Standardize()]))
+        train_dataset = ECGDataset(
+            train_ecg,
+            train_label,
+            train_idx,
+            device,
+            transform=Compose([ToTensor("float"), Standardize()]),
+        )
+        valid_dataset = ECGDataset(
+            valid_ecg,
+            valid_label,
+            valid_idx,
+            device,
+            transform=Compose([ToTensor("float"), Standardize()]),
+        )
 
-        train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=train_shuffle)
-        valid_loader = DataLoader(valid_dataset, batch_size=batch_size, shuffle=train_shuffle)
+        train_loader = DataLoader(
+            train_dataset, batch_size=batch_size, shuffle=train_shuffle
+        )
+        valid_loader = DataLoader(
+            valid_dataset, batch_size=batch_size, shuffle=train_shuffle
+        )
 
         return train_loader, valid_loader
     else:  # test
-        test_dataset = ECGDataset(ecg, label, idx, device,
-                                  transform=Compose([ToTensor('float'), Standardize()]))
+        test_dataset = ECGDataset(
+            ecg,
+            label,
+            idx,
+            device,
+            transform=Compose([ToTensor("float"), Standardize()]),
+        )
 
-        test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=test_shuffle)
+        test_loader = DataLoader(
+            test_dataset, batch_size=batch_size, shuffle=test_shuffle
+        )
 
         return test_loader
 
 
-def dataset_shuffler(ecg_data: np.ndarray,
-                     label_data: np.ndarray,
-                     idx_data: np.ndarray,
-                     age_data: np.ndarray):
+def dataset_shuffler(
+    ecg_data: np.ndarray,
+    label_data: np.ndarray,
+    idx_data: np.ndarray,
+    age_data: np.ndarray,
+):
     """
     Shuffles the datasets in same order
 
@@ -129,12 +183,15 @@ def dataset_shuffler(ecg_data: np.ndarray,
     np.random.seed(122)
     np.random.shuffle(shuffle_array)
 
-    return ecg_data[shuffle_array], label_data[shuffle_array], idx_data[shuffle_array], age_data[shuffle_array]
+    return (
+        ecg_data[shuffle_array],
+        label_data[shuffle_array],
+        idx_data[shuffle_array],
+        age_data[shuffle_array],
+    )
 
 
-def split_train_valid(total_df: pd.DataFrame,
-                      split_ratio: float,
-                      is_ecg: bool):
+def split_train_valid(total_df: pd.DataFrame, split_ratio: float, is_ecg: bool):
     """
     Splits the dataset into train and validation set in 80:20 ratio
     :param total_df:
@@ -143,9 +200,15 @@ def split_train_valid(total_df: pd.DataFrame,
     :return:
     """
     if is_ecg:
-        return total_df[:int(len(total_df) * split_ratio)], total_df[int(len(total_df) * split_ratio):]
+        return (
+            total_df[: int(len(total_df) * split_ratio)],
+            total_df[int(len(total_df) * split_ratio) :],
+        )
     else:
-        return total_df[:, :int(len(total_df[0]) * split_ratio)], total_df[:, int(len(total_df[0]) * split_ratio):]
+        return (
+            total_df[:, : int(len(total_df[0]) * split_ratio)],
+            total_df[:, int(len(total_df[0]) * split_ratio) :],
+        )
 
 
 # def contrastive_loader():
@@ -184,5 +247,12 @@ def split_train_valid(total_df: pd.DataFrame,
 #     ecg, label, idx, age = dataset_shuffler(ecg, label, idx, age)
 
 
-if __name__ == '__main__':
-    dataset_loader(internal=True, load_augmented=True, split_ratio=0.8, train=True, batch_size=512, device='cuda')
+if __name__ == "__main__":
+    dataset_loader(
+        internal=True,
+        load_augmented=True,
+        split_ratio=0.8,
+        train=True,
+        batch_size=512,
+        device="cuda",
+    )

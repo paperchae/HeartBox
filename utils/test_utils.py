@@ -1,16 +1,27 @@
 import os
 import datetime
 import pandas as pd
-from utils.visualization import hist_inference_data_by_age, plot_roc_curve, plot_confusion_matrix, \
-    plot_sensitivity_verse_specificity
-from sklearn.metrics import roc_auc_score, roc_curve, accuracy_score, \
-    precision_score, recall_score, f1_score, confusion_matrix
+from utils.visualization import (
+    hist_inference_data_by_age,
+    plot_roc_curve,
+    plot_confusion_matrix,
+    plot_sensitivity_verse_specificity,
+)
+from sklearn.metrics import (
+    roc_auc_score,
+    roc_curve,
+    accuracy_score,
+    precision_score,
+    recall_score,
+    f1_score,
+    confusion_matrix,
+)
 from utils.metrics import Metrics
 
 
-def save_inference_result(external_test_prob: iter,
-                          external_test_prediction: iter,
-                          external_test_index: iter) -> None:
+def save_inference_result(
+    external_test_prob: iter, external_test_prediction: iter, external_test_index: iter
+) -> None:
     """
     1. Save inference result in data/index/external/external_test_index.csv using index
     2. Plot histogram of inference data by age
@@ -20,20 +31,25 @@ def save_inference_result(external_test_prob: iter,
     :param external_test_index: index of external test data
     :return: None
     """
-    external_dataframe = pd.read_csv('data/index/external/external_test_index.csv', index_col=0)
-    for prob, pred, index in zip(external_test_prob, external_test_prediction, external_test_index):
+    external_dataframe = pd.read_csv(
+        "data/index/external/external_test_index.csv", index_col=0
+    )
+    for prob, pred, index in zip(
+        external_test_prob, external_test_prediction, external_test_index
+    ):
         index = str(int(index)).zfill(5)
-        file_name = 'external_waveform_' + index + '.npy'
-        external_dataframe.loc[external_dataframe['FILE_NAME'] == file_name,
-                               ['AFIB_OR_AFL_PROB', 'AFIB_OR_AFL']] = [float(prob), bool(pred)]
-    external_dataframe.to_csv('data/index/external/external_test_index_tempp.csv')
-    print('Inference result saved in data/index/external/external_test_index_tempp.csv')
+        file_name = "external_waveform_" + index + ".npy"
+        external_dataframe.loc[
+            external_dataframe["FILE_NAME"] == file_name,
+            ["AFIB_OR_AFL_PROB", "AFIB_OR_AFL"],
+        ] = [float(prob), bool(pred)]
+    external_dataframe.to_csv("data/index/external/external_test_index_tempp.csv")
+    print("Inference result saved in data/index/external/external_test_index_tempp.csv")
     hist_inference_data_by_age()
-    print('test')
+    print("test")
 
 
-def save_metric_result(cfg,
-                       results) -> None:
+def save_metric_result(cfg, results) -> None:
     """
     Save metric result in dataframe using datetime as index
 
@@ -44,7 +60,7 @@ def save_metric_result(cfg,
     if cfg.debug:
         pass
     results = [round(result, 5) for result in results]
-    csv_file = cfg.test.save_path + 'metric_result.csv'
+    csv_file = cfg.test.save_path + "metric_result.csv"
     idx = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")  # index of result
 
     new_result = pd.DataFrame(columns=cfg.test.metrics, index=[idx])
@@ -55,14 +71,10 @@ def save_metric_result(cfg,
     else:
         total_result = new_result
     total_result.to_csv(csv_file)
-    print(f'Metric result saved in {csv_file}')
+    print(f"Metric result saved in {csv_file}")
 
 
-def compute_metrics(load_best_model,
-                    prob,
-                    pred,
-                    label,
-                    test_cfg) -> None:
+def compute_metrics(load_best_model, prob, pred, label, test_cfg) -> None:
     """
     Compute metrics of inference result & save metric result in dataframe
     Including AUROC, Accuracy, Precision, Recall, F1, Confusion Matrix, Specificity, Sensitivity
@@ -111,29 +123,31 @@ def compute_metrics(load_best_model,
     # Plot sensitivity vs specificity
     plot_sensitivity_verse_specificity(prob, label)
 
-    print(f'AUROC: {auroc:.4f}, Accuracy: {accuracy:.4f}, Precision: {precision:.4f}, Recall: {recall:.4f},'
-          f' F1: {f1:.4f}, Specificity: {specificity:.4f}, Sensitivity: {sensitivity:.4f}')
+    print(
+        f"AUROC: {auroc:.4f}, Accuracy: {accuracy:.4f}, Precision: {precision:.4f}, Recall: {recall:.4f},"
+        f" F1: {f1:.4f}, Specificity: {specificity:.4f}, Sensitivity: {sensitivity:.4f}"
+    )
 
     # Save metric result
     # results = [auroc, sensitivity, specificity, accuracy, precision, recall, f1]
     results = []
     for metric in test_cfg.metrics:
-        if metric == 'AUROC':
+        if metric == "AUROC":
             results.append(auroc)
-        elif metric == 'Sensitivity':
+        elif metric == "Sensitivity":
             results.append(sensitivity)
-        elif metric == 'Specificity':
+        elif metric == "Specificity":
             results.append(specificity)
-        elif metric == 'Accuracy':
+        elif metric == "Accuracy":
             results.append(accuracy)
-        elif metric == 'Precision':
+        elif metric == "Precision":
             results.append(precision)
-        elif metric == 'Recall':
+        elif metric == "Recall":
             results.append(recall)
-        elif metric == 'F1':
+        elif metric == "F1":
             results.append(f1)
         else:
-            raise ValueError(f'Invalid metric name: {metric}')
+            raise ValueError(f"Invalid metric name: {metric}")
     save_metric_result(test_cfg, results)
 
 

@@ -7,6 +7,7 @@ from tqdm import tqdm
 # https://torchmetrics.readthedocs.io/en/stable/classification/f1_score.html
 # https://yuevelyne.tistory.com/10
 
+
 def inference(**kwargs):  # -> Dict[float, bool]: index:[prob, pred]
     # TODO: change return value to Dict[float, bool]
     """
@@ -17,22 +18,24 @@ def inference(**kwargs):  # -> Dict[float, bool]: index:[prob, pred]
     :param kwargs: model, external loader, device(gpu)
     :return: Inference Probability, Prediction, Index of External Data
     """
-    kwargs['model'].eval()  # == model.train(False)
+    kwargs["model"].eval()  # == model.train(False)
     AFIB_OR_AFL_PROB = torch.empty(1)
     AFIB_OR_AFL = torch.empty(1)
     index = torch.empty(1)
-    with tqdm(kwargs['loader'], desc='Testing External Data') as batch_iterator:
+    with tqdm(kwargs["loader"], desc="Testing External Data") as batch_iterator:
         with torch.no_grad():
             for x, _, idx in batch_iterator:
-                x = x.to(kwargs['device'])
+                x = x.to(kwargs["device"])
                 idx = idx
 
                 # model output
-                output = torch.sigmoid(kwargs['model'](x).view(-1))
+                output = torch.sigmoid(kwargs["model"](x).view(-1))
                 prediction = ((output.view(-1)) > 0.5).to(torch.long)
 
                 # Concatenate all inference result
-                AFIB_OR_AFL_PROB = torch.cat((AFIB_OR_AFL_PROB, output.detach().cpu()), dim=0)
+                AFIB_OR_AFL_PROB = torch.cat(
+                    (AFIB_OR_AFL_PROB, output.detach().cpu()), dim=0
+                )
                 AFIB_OR_AFL = torch.cat((AFIB_OR_AFL, prediction.detach().cpu()), dim=0)
                 index = torch.cat((index, idx), dim=0)
 
@@ -49,29 +52,35 @@ def test_one_epoch(compute_metric: bool = False, **kwargs):
     :param kwargs:
     :return: Average test loss in epoch or AFIB_OR_AFL_PROB, AFIB_OR_AFL, label, index
     """
-    kwargs['model'].eval()
+    kwargs["model"].eval()
     if compute_metric:
         AFIB_OR_AFL_PROB = torch.empty(1)
         AFIB_OR_AFL = torch.empty(1)
         label = torch.empty(1)
         index = torch.empty(1)
-    with tqdm(kwargs['loader'], desc=f'Test Epoch {kwargs["epoch"]}') as batch_iterator:
+    with tqdm(kwargs["loader"], desc=f'Test Epoch {kwargs["epoch"]}') as batch_iterator:
         total_cost = 0.0
         with torch.no_grad():
             for x, y, idx in batch_iterator:
                 # TODO: Check if x, y is already on device + check train, valid function also.
-                x = x.to(kwargs['device'])  # isn't it already on device?
-                y = y.to(kwargs['device'])
+                x = x.to(kwargs["device"])  # isn't it already on device?
+                y = y.to(kwargs["device"])
 
-                output = kwargs['model'](x)
-                loss = kwargs['loss'](output.view(-1), y)
+                output = kwargs["model"](x)
+                loss = kwargs["loss"](output.view(-1), y)
                 total_cost += loss.item()
                 if compute_metric:
                     output = torch.sigmoid(output.view(-1))
                     # prediction = ((output.view(-1)) > 0.5).to(torch.long)
-                    prediction = ((output.view(-1)) > kwargs['threshold']).to(torch.long)
-                    AFIB_OR_AFL_PROB = torch.cat((AFIB_OR_AFL_PROB, output.detach().cpu()), dim=0)
-                    AFIB_OR_AFL = torch.cat((AFIB_OR_AFL, prediction.detach().cpu()), dim=0)
+                    prediction = ((output.view(-1)) > kwargs["threshold"]).to(
+                        torch.long
+                    )
+                    AFIB_OR_AFL_PROB = torch.cat(
+                        (AFIB_OR_AFL_PROB, output.detach().cpu()), dim=0
+                    )
+                    AFIB_OR_AFL = torch.cat(
+                        (AFIB_OR_AFL, prediction.detach().cpu()), dim=0
+                    )
                     label = torch.cat((label, y.detach().cpu()), dim=0)
                     index = torch.cat((index, idx), dim=0)
 

@@ -14,7 +14,9 @@ class Augmentation:
 
         :return:
         """
-        aug1 = Manipulation(self.input_sig).down_sample(from_fs=self.input_fs, to_fs=self.target_fs)
+        aug1 = Manipulation(self.input_sig).down_sample(
+            from_fs=self.input_fs, to_fs=self.target_fs
+        )
         aug1 = Manipulation(aug1).normalize(self.cfg.option.normalize)
 
         return aug1
@@ -25,8 +27,12 @@ class Augmentation:
 
         :return:
         """
-        aug2 = Cleansing(self.input_sig, fs=self.input_fs, cpu=True).detrend(mode=self.cfg.option.detrend)
-        aug2 = Manipulation(aug2).down_sample(from_fs=self.input_fs, to_fs=self.target_fs)
+        aug2 = Cleansing(self.input_sig, fs=self.input_fs, cpu=True).detrend(
+            mode=self.cfg.option.detrend
+        )
+        aug2 = Manipulation(aug2).down_sample(
+            from_fs=self.input_fs, to_fs=self.target_fs
+        )
         aug2 = Manipulation(aug2).normalize(self.cfg.option.normalize)
 
         return aug2
@@ -38,7 +44,9 @@ class Augmentation:
         :return:
         """
         aug3 = Cleansing(self.input_sig).noise_removal(self.cfg.option.denoise)
-        aug3 = Manipulation(aug3).down_sample(from_fs=self.input_fs, to_fs=self.target_fs)
+        aug3 = Manipulation(aug3).down_sample(
+            from_fs=self.input_fs, to_fs=self.target_fs
+        )
         aug3 = Manipulation(aug3).normalize(self.cfg.option.normalize)
 
         return aug3
@@ -50,8 +58,12 @@ class Augmentation:
 
         :return:
         """
-        aug4 = Cleansing(self.input_sig).baseline_correction(fs=self.input_fs, flip_baseline=True)
-        aug4 = Manipulation(aug4).down_sample(from_fs=self.input_fs, to_fs=self.target_fs)
+        aug4 = Cleansing(self.input_sig).baseline_correction(
+            fs=self.input_fs, flip_baseline=True
+        )
+        aug4 = Manipulation(aug4).down_sample(
+            from_fs=self.input_fs, to_fs=self.target_fs
+        )
         aug4 = Manipulation(aug4).normalize(self.cfg.option.normalize)
 
         return aug4

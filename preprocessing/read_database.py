@@ -3,6 +3,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
+
 # from skimage.restoration import denoise_wavelet
 
 from Handler import Manipulation, Cleansing
@@ -19,28 +20,30 @@ def read_idx_data(data_cfg: Any) -> pd.DataFrame:
 
     """
     if data_cfg.internal:
-        temp = 'train' if data_cfg.train else 'test'
-        data_dir = '../data/index/internal/{}_index.csv'.format(temp)
+        temp = "train" if data_cfg.train else "test"
+        data_dir = "../data/index/internal/{}_index.csv".format(temp)
 
-        patient_df = pd.read_csv(data_dir, delimiter=',', index_col=0)
-        df = patient_df.loc[patient_df['AFIB_OR_AFL'] == data_cfg.af]
+        patient_df = pd.read_csv(data_dir, delimiter=",", index_col=0)
+        df = patient_df.loc[patient_df["AFIB_OR_AFL"] == data_cfg.af]
 
     else:  # external data
-        data_dir = '../data/index/external/external_test_index.csv'
-        patient_df = pd.read_csv(data_dir, delimiter=',', index_col=0)
+        data_dir = "../data/index/external/external_test_index.csv"
+        patient_df = pd.read_csv(data_dir, delimiter=",", index_col=0)
         df = patient_df
 
     return df
 
 
-def read_waveform_data(i: int,
-                       df: pd.DataFrame,
-                       ecg_per_process: Any,
-                       fname_per_process,
-                       sex_per_process,
-                       age_per_process,
-                       preprocess_cfg,
-                       debug_flag) -> None:
+def read_waveform_data(
+    i: int,
+    df: pd.DataFrame,
+    ecg_per_process: Any,
+    fname_per_process,
+    sex_per_process,
+    age_per_process,
+    preprocess_cfg,
+    debug_flag,
+) -> None:
     """
     * If datasets are highly imbalanced for binary classification, Data Augmentation is highly recommended.
     Read waveform data from npy file with Dataframe from read_idx_data()
@@ -69,13 +72,21 @@ def read_waveform_data(i: int,
     :param debug_flag:
     :return:
     """
-    waveform_dir = '../data/waveform/internal/{}' if preprocess_cfg.data.internal else '../data/waveform/external/{}'
+    waveform_dir = (
+        "../data/waveform/internal/{}"
+        if preprocess_cfg.data.internal
+        else "../data/waveform/external/{}"
+    )
     debug_cnt = 0
     # read waveform data
     waveform, filename, sex, age = [], [], [], []
 
-    for f, sr, s, a in tqdm(zip(df['FILE_NAME'], df['SAMPLE_RATE'], df['SEX'], df['AGE']), desc='Process {}'.format(i),
-                            leave=True, total=len(df)):
+    for f, sr, s, a in tqdm(
+        zip(df["FILE_NAME"], df["SAMPLE_RATE"], df["SEX"], df["AGE"]),
+        desc="Process {}".format(i),
+        leave=True,
+        total=len(df),
+    ):
         if debug_flag:
             if debug_cnt == 10:
                 break
@@ -84,16 +95,20 @@ def read_waveform_data(i: int,
         # down sampling 1 (from 500, 250Hz to 250Hz)
         ecg = Manipulation(ecg).down_sample(from_fs=sr, to_fs=250).squeeze()
         waveform.append(ecg)
-        filename.append(f.split('_')[-1].split('.')[0])
+        filename.append(f.split("_")[-1].split(".")[0])
         sex.append(s)
         age.append(a)
 
     waveform = np.array(waveform)
 
     # baseline wander removal
-    base_ecg = Cleansing(waveform, fs=250, cpu=True).detrend(mode=preprocess_cfg.option.detrend)
+    base_ecg = Cleansing(waveform, fs=250, cpu=True).detrend(
+        mode=preprocess_cfg.option.detrend
+    )
     # down sampling 2 (from 250Hz to 125Hz)
-    down_ecg = Manipulation(base_ecg).down_sample(from_fs=250, to_fs=preprocess_cfg.option.target_fs)
+    down_ecg = Manipulation(base_ecg).down_sample(
+        from_fs=250, to_fs=preprocess_cfg.option.target_fs
+    )
     # denoising
     # denoise_ecg = [denoise_wavelet(ecg, method='VisuShrink', mode=preprocess_cfg.option.denoise,
     #                                wavelet_levels=3, wavelet='sym9', rescale_sigma=True) for ecg in np.array(down_ecg)]

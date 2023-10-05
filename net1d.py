@@ -15,24 +15,46 @@ class Net1D(torch.nn.Module):
     def __init__(self, cfg) -> None:
         super(Net1D, self).__init__()
         self.cfg = cfg
-        self.target_length = self.cfg.preprocess.data.time * self.cfg.preprocess.option.target_fs
+        self.target_length = (
+            self.cfg.preprocess.data.time * self.cfg.preprocess.option.target_fs
+        )
         self.num_classes = self.cfg.train.general.number_of_classes
         self.in_channels = self.cfg.train.hyperparameter.in_channels
         self.out_channels = self.cfg.train.hyperparameter.out_channels
 
         self.conv_block1 = torch.nn.Sequential(
-            torch.nn.Conv1d(self.in_channels, self.out_channels, kernel_size=3, stride=2, padding=1),
+            torch.nn.Conv1d(
+                self.in_channels, self.out_channels, kernel_size=3, stride=2, padding=1
+            ),
             torch.nn.BatchNorm1d(self.out_channels),
-            torch.nn.Conv1d(self.out_channels, self.out_channels * 2, kernel_size=3, stride=2, padding=1),
+            torch.nn.Conv1d(
+                self.out_channels,
+                self.out_channels * 2,
+                kernel_size=3,
+                stride=2,
+                padding=1,
+            ),
             torch.nn.BatchNorm1d(self.out_channels * 2),
-            torch.nn.GELU()
+            torch.nn.GELU(),
         )
         self.conv_block2 = torch.nn.Sequential(
-            torch.nn.Conv1d(self.out_channels * 2, self.out_channels * 2, kernel_size=3, stride=2, padding=1),
+            torch.nn.Conv1d(
+                self.out_channels * 2,
+                self.out_channels * 2,
+                kernel_size=3,
+                stride=2,
+                padding=1,
+            ),
             torch.nn.BatchNorm1d(self.out_channels * 2),
-            torch.nn.Conv1d(self.out_channels * 2, self.out_channels * 2, kernel_size=3, stride=2, padding=1),
+            torch.nn.Conv1d(
+                self.out_channels * 2,
+                self.out_channels * 2,
+                kernel_size=3,
+                stride=2,
+                padding=1,
+            ),
             torch.nn.BatchNorm1d(self.out_channels * 2),
-            torch.nn.GELU()
+            torch.nn.GELU(),
         )
 
         self.fc = torch.nn.Linear(self.out_channels * 2, 1)

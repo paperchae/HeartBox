@@ -5,6 +5,7 @@ from typing import Any, Callable, Optional, Tuple
 # file:///Users/paperc/Documents/afib_classification_springer.pdf
 # https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8583162/pdf/ijerph-18-11302.pdf
 
+
 class Metrics:
     def __init__(self, probs: np.ndarray, labels: np.ndarray, cutoff: float = 0.5):
         """
@@ -94,7 +95,9 @@ class Metrics:
             Area under the receiver operating characteristic curve.
         """
 
-        auroc = np.trapz(self.tpr, self.fpr)  # Integration using the composite trapezoidal rule (area under curve)
+        auroc = np.trapz(
+            self.tpr, self.fpr
+        )  # Integration using the composite trapezoidal rule (area under curve)
 
         return auroc
 

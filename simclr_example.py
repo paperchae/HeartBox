@@ -13,17 +13,21 @@ from sklearn.datasets import fetch_openml
 Load Data
 """
 
-mnist = fetch_openml('mnist_784')
+mnist = fetch_openml("mnist_784")
 
 # GPU 사용 지정
-device = torch.device('cuda:0') if torch.cuda.is_available() else torch.device('cpu')
+device = torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")
 
 # 7만개 중 앞 6만개 train 데이터 가정
-X_train = torch.tensor(np.array(mnist.data)).float().reshape(-1, 1, 28, 28)[:60000].to(device)
+X_train = (
+    torch.tensor(np.array(mnist.data)).float().reshape(-1, 1, 28, 28)[:60000].to(device)
+)
 y_train = torch.tensor(np.array(list(map(np.int_, mnist.target))))[:60000].to(device)
 
 # 7만개 중 뒤 1만개 test 데이터 가정
-X_test = torch.tensor(np.array(mnist.data)).float().reshape(-1, 1, 28, 28)[60000:].to(device)
+X_test = (
+    torch.tensor(np.array(mnist.data)).float().reshape(-1, 1, 28, 28)[60000:].to(device)
+)
 y_test = torch.tensor(np.array(list(map(np.int_, mnist.target))))[60000:].to(device)
 
 print(X_train.shape)  # torch.Size([60000, 1, 28, 28])
@@ -42,7 +46,7 @@ def cutout_and_rotate(image):
     x_start = np.random.randint(20)  # cut out 시작할 x축 위치(0~19 중 1개)
     y_start = np.random.randint(20)  # cut out 시작할 y축 위치(0~19 중 1개)
 
-    image[..., x_start:x_start + 9, y_start:y_start + 9] = 255 / 2  # 해당 부분 회색 마킹
+    image[..., x_start : x_start + 9, y_start : y_start + 9] = 255 / 2  # 해당 부분 회색 마킹
     return torch.rot90(image, 1, [-2, -1])  # 마지막 두 axis 기준 90도 회전
 
 
@@ -61,11 +65,15 @@ class CNN(nn.Module):
     def forward(self, x):
         x = F.relu(self.conv1(x))  # (batch, 1, 28, 28) -> (batch, 10, 24, 24)
 
-        x = F.max_pool2d(x, kernel_size=2, stride=2)  # (batch, 10, 24, 24) -> (batch, 10, 12, 12)
+        x = F.max_pool2d(
+            x, kernel_size=2, stride=2
+        )  # (batch, 10, 24, 24) -> (batch, 10, 12, 12)
 
         x = F.relu(self.conv2(x))  # (batch, 10, 12, 12) -> (batch, 20, 8, 8)
 
-        x = F.max_pool2d(x, kernel_size=2, stride=2)  # (batch, 20, 8, 8) -> (batch, 20, 4, 4)
+        x = F.max_pool2d(
+            x, kernel_size=2, stride=2
+        )  # (batch, 20, 8, 8) -> (batch, 20, 4, 4)
 
         x = x.view(-1, 4 * 4 * 20)  # (batch, 20, 4, 4) -> (batch, 320)
 
@@ -115,7 +123,12 @@ class SimCLRLoss(nn.Module):
         positive_samples = torch.cat((sim_i_j, sim_j_i), dim=0).reshape(N, 1)
         negative_samples = sim[self.mask].reshape(N, -1)
 
-        labels = torch.from_numpy(np.array([0] * N)).reshape(-1).to(positive_samples.device).long()
+        labels = (
+            torch.from_numpy(np.array([0] * N))
+            .reshape(-1)
+            .to(positive_samples.device)
+            .long()
+        )
 
         logits = torch.cat((positive_samples, negative_samples), dim=1)
         loss = self.criterion(logits, labels)
@@ -134,9 +147,7 @@ X_train_aug = cutout_and_rotate(X_train).to(device)  # 각 X_train 데이터에 
 dataset = TensorDataset(X_train, X_train_aug)  # augmentation된 데이터와 pair
 batch_size = 32
 
-dataloader = DataLoader(
-    dataset,
-    batch_size=batch_size)
+dataloader = DataLoader(dataset, batch_size=batch_size)
 
 model = CNN()  # 모델 변수 선언
 loss_func = SimCLRLoss(batch_size, temperature=0.5)  # loss 함수 선언
@@ -161,7 +172,7 @@ for i in range(1, epochs + 1):
         loss.backward()
         optimizer.step()
 
-    print('Epoch : %d, Avg Loss : %.4f' % (i, total_loss / len(dataloader)))
+    print("Epoch : %d, Avg Loss : %.4f" % (i, total_loss / len(dataloader)))
 
 """
 Downstream Model
@@ -183,9 +194,7 @@ class CNN_classifier(nn.Module):
 class_dataset = TensorDataset(X_train, y_train)  # 데이터와 라벨 간의 pair
 batch_size = 32
 
-class_dataloader = DataLoader(
-    class_dataset,
-    batch_size=batch_size)
+class_dataloader = DataLoader(class_dataset, batch_size=batch_size)
 
 classifier = CNN_classifier(model).to(device)  # 모델 선언, GPU 활용 지정
 
@@ -207,22 +216,24 @@ for i in range(1, epochs + 1):
         loss.backward()
         optimizer.step()
 
-        correct += torch.sum(torch.argmax(logits, 1) == data[1]).item()  # 정확도 산출을 위하여 정답 개수 누적
+        correct += torch.sum(
+            torch.argmax(logits, 1) == data[1]
+        ).item()  # 정확도 산출을 위하여 정답 개수 누적
 
-    print('Epoch : %d, Train Accuracy : %.2f%%' % (i, correct * 100 / len(X_train)))
+    print("Epoch : %d, Train Accuracy : %.2f%%" % (i, correct * 100 / len(X_train)))
 
 test_dataset = TensorDataset(X_test, y_test)  # 테스트 데이터와 라벨 pair
 batch_size = 32
 
-test_dataloader = DataLoader(
-    test_dataset,
-    batch_size=batch_size)
+test_dataloader = DataLoader(test_dataset, batch_size=batch_size)
 
 classifier.eval()  # 테스트 모드로 전환
 
 correct = 0
 for data in tqdm(test_dataloader):
     logits = classifier(data[0])
-    correct += torch.sum(torch.argmax(logits, 1) == data[1]).item()  # 정확도 산출을 위하여 정답 개수 누적
+    correct += torch.sum(
+        torch.argmax(logits, 1) == data[1]
+    ).item()  # 정확도 산출을 위하여 정답 개수 누적
 
-print('Test Accuracy : %.2f%%' % (correct * 100 / len(X_test)))
+print("Test Accuracy : %.2f%%" % (correct * 100 / len(X_test)))
