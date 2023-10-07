@@ -17,7 +17,7 @@
 
 ## Preprocessing
 
-[preprocessing](/preprocessing)
+[preprocess](/preprocess)
 > - Baseline Correction
 >  - Removes baseline wandering created by respiration, body movement, etc.
 > - Denoising
@@ -27,7 +27,7 @@
 
 ## Data Augmentation
 
-[Augmentation](preprocessing/signal_augmentation.py)
+[Augmentation](preprocess/signal_augmentation.py)
 
 ***
 
