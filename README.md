@@ -41,7 +41,7 @@
 >- Records: *800,000*
 >
 > [MIMIC-IV Waveform Database](https://physionet.org/content/mimic4wdb/0.1.0/)
->- *12 leads ECG*, 10 seconds length
+>- Contains *ECG, ABP, PPG, Resp, etc*.
 >- Patients: *198*
 >- Records: *200 (10,000 records upcomming)*
 >
