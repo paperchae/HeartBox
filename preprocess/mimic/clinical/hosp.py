@@ -17,14 +17,19 @@ class HOSP:
         self.subject_list = subject_list
         self.target_diagnoses = target_diagnoses
 
-        self.admissions = self.read_admissions()
-        self.diagnoses = self.read_diagnoses_icd()
-        self.patients = self.read_patients()
-
     def read_admissions(self):
+        """
+        Read admissions.csv.gz and return target subject_id dataframe
+
+        :return admissions dataframe
+        """
+
+        print("Reading admissions.csv.gz...")
+
         admissions = pd.read_csv(self.hosp_path + 'admissions.csv.gz', compression='gzip', header=0, sep=',',
                                  low_memory=False)
         admissions = loc(admissions, 'subject_id', 'in', self.subject_list)
+        admissions = admissions[["subject_id", "hadm_id", "admittime", "dischtime", "deathtime", "race"]]
         return admissions
 
     def read_diagnoses_icd(self):
