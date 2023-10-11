@@ -48,7 +48,14 @@ class HOSP:
         # d_icd_diagnoses = loc(d_icd_diagnoses, "icd_code", "in", get_code_from_icd_dict(self.diagnoses))
         return d_icd_diagnoses
 
-    def patients(self):
+    def read_patients(self):
+        """
+        Read patients.csv.gz and return target subject_id dataframe
+
+        :return patients dataframe
+        """
+        print("Reading patients.csv.gz...")
+
         patients = pd.read_csv(self.hosp_path + 'patients.csv.gz', compression='gzip', header=0, sep=',',
                                low_memory=False)
         patients = loc(patients, 'subject_id', 'in', self.subject_list)
