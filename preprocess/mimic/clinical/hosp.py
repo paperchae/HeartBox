@@ -32,18 +32,14 @@ class HOSP:
         admissions = admissions[["subject_id", "hadm_id", "admittime", "dischtime", "deathtime", "race"]]
         return admissions
 
-    def read_diagnoses_icd(self):
-        diagnoses_icd = pd.read_csv(self.hosp_path + 'diagnoses_icd.csv.gz', compression='gzip', header=0, sep=',',
-                                    low_memory=False)
-        diagnoses_icd = loc(diagnoses_icd, 'subject_id', 'in', self.subject_list)
-        icd_9_patients = loc(diagnoses_icd, 'icd_version', 'eq', 9)
-        icd_10_patients = loc(diagnoses_icd, 'icd_version', 'eq', 10)
-        icd_9_code = self.read_d_icd_diagnoses(icd_9_patients['icd_code'].unique())
-        icd_9_code_2 = loc(icd_9_code, 'icd_code', 'in', get_code_from_icd_dict(self.diagnoses))
-        icd_10_code = self.read_d_icd_diagnoses(icd_10_patients['icd_code'].unique())
-        return diagnoses_icd
-
     def read_d_icd_diagnoses(self, icd_code):
+        """
+        Read d_icd_diagnoses.csv.gz to get descriptions of icd code
+        *** This function is not used in this class due to lack of chapter title***
+        """
+
+        print("Reading d_icd_diagnoses.csv.gz...")
+
         d_icd_diagnoses = pd.read_csv(self.hosp_path + 'd_icd_diagnoses.csv.gz', compression='gzip', header=0, sep=',',
                                       low_memory=False)
         # get target icd code dataframe
