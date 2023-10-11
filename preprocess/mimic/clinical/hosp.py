@@ -1,18 +1,25 @@
-from utils.config import get_config
 from utils.pandas_utils import *
-from preprocess.icd import *
+from preprocess.icd.icd_chapter import icd_9_chapters, icd_10_chapters
 
 
 class HOSP:
-    def __init__(self, hosp_path: str, subject_list: list, target_diagnoses: str):
+    def __init__(self, hosp_path: str, subject_list: list, target_diagnoses: str = "circulatory"):
+        """
+        Read hospital data and return target dataframes,
+        including admissions, diagnoses, patients.
+
+        :param hosp_path: path of the hospital data
+        :param subject_list: list of target subject id
+        :param target_diagnoses: target diagnosis to read,
+
+        """
         self.hosp_path = hosp_path
         self.subject_list = subject_list
-        self.diagnoses = target_diagnoses
+        self.target_diagnoses = target_diagnoses
 
         self.admissions = self.read_admissions()
-        self.diagnoses_icd = self.read_diagnoses_icd()
-        self.d_icd_diagnoses = self.read_d_icd_diagnoses(self.diagnoses_icd['icd_code'].unique())
-        self.patients = self.patients()
+        self.diagnoses = self.read_diagnoses_icd()
+        self.patients = self.read_patients()
 
     def read_admissions(self):
         admissions = pd.read_csv(self.hosp_path + 'admissions.csv.gz', compression='gzip', header=0, sep=',',
