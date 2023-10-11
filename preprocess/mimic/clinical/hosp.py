@@ -32,21 +32,63 @@ class HOSP:
         admissions = admissions[["subject_id", "hadm_id", "admittime", "dischtime", "deathtime", "race"]]
         return admissions
 
-    def read_d_icd_diagnoses(self, icd_code):
+    def read_diagnoses_icd(self):
         """
-        Read d_icd_diagnoses.csv.gz to get descriptions of icd code
-        *** This function is not used in this class due to lack of chapter title***
+        Read diagnoses_icd.csv.gz and return target icd code dataframe
+
+        1. Find the chapter title from the target diagnosis per icd version
+        2. Read icd code dataframes & diagnoses_icd.csv.gz
+        3. Filter out the subject_id that is not in the subject_list
+        4. Find the target icd code from the icd code dataframe
+        5. Merge the icd code dataframe with the diagnosis dataframe
+
+        : return diagnoses dataframe with detailed descriptions
         """
 
-        print("Reading d_icd_diagnoses.csv.gz...")
+        print("Reading diagnoses_icd.csv.gz...")
 
-        d_icd_diagnoses = pd.read_csv(self.hosp_path + 'd_icd_diagnoses.csv.gz', compression='gzip', header=0, sep=',',
-                                      low_memory=False)
-        # get target icd code dataframe
-        d_icd_diagnoses = loc(d_icd_diagnoses, 'icd_code', 'in', icd_code)
-        # screen out the icd code that is not in the target icd code dataframe
-        # d_icd_diagnoses = loc(d_icd_diagnoses, "icd_code", "in", get_code_from_icd_dict(self.diagnoses))
-        return d_icd_diagnoses
+        def _retrieve_chapter_title(target_title):
+            """
+            Find the chapter title from the target diagnosis per icd version
+            :param target_title: target diagnosis
+            """
+            version = [icd_9_chapters, icd_10_chapters]
+            title = {"9": 0, "10": 0}
+            version_cnt = 9
+            for v in version:
+                for chap, value in v.items():
+                    if target_title.lower() in value["title"].lower():
+                        title[str(version_cnt)] = value["title"]
+                    else:
+                        continue
+                version_cnt += 1
+
+            if all(list(title.values())):
+                return title
+            else:
+                raise ValueError("Invalid chapter, check icd_chapter.py")
+
+        # Find the chapter title from the target diagnosis per version
+        chapter_titles = _retrieve_chapter_title(self.target_diagnoses)
+
+        # Read icd code dataframes & diagnoses_icd.csv.gz
+        icd_9 = pd.read_csv('../preprocess/icd/result/icd_9.csv',
+                            header=0, sep=',', low_memory=False)
+        icd_10 = pd.read_csv('../preprocess/icd/result/icd_10.csv',
+                             header=0, sep=',', low_memory=False).drop(columns=['IS_HEADER'])
+        diagnoses = pd.read_csv(self.hosp_path + 'diagnoses_icd.csv.gz',
+                                compression='gzip', header=0, sep=',', low_memory=False)
+
+        # Filter out the subject_id that is not in the subject_list
+        diagnoses = loc(diagnoses, 'subject_id', 'in', self.subject_list)
+
+        # Find the target icd code from the icd code dataframe
+        target_code = loc(pd.concat((icd_9, icd_10)), "TITLE", "in", list(chapter_titles.values()))
+
+        # Merge the icd code dataframe with the diagnosis dataframe
+        diagnoses = pd.merge(diagnoses, target_code.rename(columns={"DIAGNOSIS_CODE": "icd_code"}))
+
+        return diagnoses
 
     def read_patients(self):
         """
