@@ -102,3 +102,18 @@ class HOSP:
                                low_memory=False)
         patients = loc(patients, 'subject_id', 'in', self.subject_list)
         return patients
+
+    def merge_dataframes(self):
+        """
+        Merge admissions, patients, diagnoses dataframes for further analysis
+
+        :return total_hospital_df
+        """
+        patients = self.read_patients()
+        admissions = self.read_admissions()
+        diagnoses = self.read_diagnoses_icd()
+        total_hospital_df = pd.merge(admissions, patients, on=['subject_id'])
+
+        total_hospital_df = pd.merge(total_hospital_df, diagnoses, on=["subject_id", "hadm_id"])
+
+        return total_hospital_df
