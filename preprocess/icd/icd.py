@@ -7,21 +7,35 @@ from preprocess.icd.icd_chapter import icd_chapters
 
 
 class ICD:
+    """
+    ICD code retrieving class
+
+    Support version 9 and 10
+    Used for filtering patients with ICD Chapter titles (e.g. circulatory, respiratory, etc.)
+
+    """
     def __init__(self, version: int=9):
         self.version = version
+        self.data_path = os.path.join(os.path.dirname(__file__), "result/icd_{}.csv".format(self.version))
         self.flag = self.check_existence()
         self.icd_dict = icd_chapters["{}".format(self.version)]
         self.path = self.icd_dict["path"]
         self.target_dict = self.icd_dict["target_dict"]
 
     def check_existence(self):
-        data_path = os.path.join(os.path.dirname(__file__), "result/icd_{}.csv".format(self.version))
+        """
+        Check preprocessed ICD csv existence
+        """
 
-        return os.path.isfile(data_path)
+        return os.path.isfile(self.data_path)
 
     def get_dataframe(self):
+        """
+        If ICD csv exist read csv file.
+        Otherwise, create csv files with generate_icd_df() and return icd dataframe
+        """
         if self.flag:
-            df = pd.read_csv(os.path.join(os.path.dirname(__file__), "result/icd_{}.csv".format(self.version)))
+            df = pd.read_csv(self.data_path)
         else:
             print("Generating icd_{}.csv...".format(self.version))
             df = self.generate_icd_df()
@@ -29,6 +43,11 @@ class ICD:
         return df
 
     def _get_icd_block(self, icd_code):
+        """
+        According to version of ICD code, extract chapter information from icd_code.
+
+        * need to work on blocks with E, V in icd 9
+        """
         if self.version == 9:
             block = icd_code[:3]
             # if block[0] in ['E', 'V']:
@@ -40,6 +59,11 @@ class ICD:
         return block
 
     def _check_chapter(self, icd_code):
+        """
+        With block information from icd_code, retrieve chapter information
+
+        * Used for generating csv files in exact format
+        """
         icd_block = self._get_icd_block(icd_code)
         exist_flag = False
 
@@ -61,6 +85,11 @@ class ICD:
             return "None", "None"
 
     def _generate_row(self, data):
+        """
+        Generate rows for dataframe
+
+        * Used for fast execution making dataframe.
+        """
         if self.version == 9:
             df = pd.DataFrame(data=[data],
                               columns=["CHAPTER", "DIAGNOSIS_CODE", "TITLE", "SHORT_DESC", "LONG_DESC"])
@@ -73,6 +102,17 @@ class ICD:
         return df
 
     def generate_icd_df(self):
+        """
+        Generates ICD Code csv files from text & xlsx files
+
+        Including:
+            CHAPTER : Roman order for chapter
+            DIAGNOSIS_CODE : icd code
+            TITLE : Text of disease categorie
+            IS_HEADER : Header flag for disease, available only for version 10
+            SHORT_DESC : Short text description of icd code with acronyms
+            LONG_DESC : Long text description of icd code
+        """
         df_list = []
 
         if self.version == 9:
@@ -140,7 +180,10 @@ def retrieve_chapter_title(target_title):
 
 
 if __name__ == "__main__":
-    icd_9_df = ICD(version=9).df
-    icd_9_df.to_csv("result/icd_9.csv", index=False)
-    icd_10_df = ICD(version=10).df
-    icd_10_df.to_csv("result/icd_10.csv", index=False)
+    icd_9_df = ICD(version=9).get_dataframe()
+    icd_10_df = ICD(version=10).get_dataframe()
+
+    print("ICD 9")
+    print(icd_9_df.head())
+    print("ICD 10")
+    print(icd_10_df.head())
