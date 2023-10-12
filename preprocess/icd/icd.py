@@ -1,21 +1,32 @@
-import pandas as pd
-from tqdm import tqdm
-from utils.pandas_utils import *
+import os
 import numpy as np
-from icd_chapter import icd_9_chapters, icd_10_chapters
+import pandas as pd
+
+from tqdm import tqdm
+from preprocess.icd.icd_chapter import icd_chapters
 
 
 class ICD:
-    def __init__(self, version: int):
+    def __init__(self, version: int=9):
         self.version = version
-        if self.version == 9:
-            self.path = "ICD-9-CM-v32/CMS32_DESC_LONG_SHORT_DX.xlsx"
-            self.target_dict = icd_9_chapters
-            self.df = self.generate_icd_df_9()
-        elif self.version == 10:
-            self.path = "ICD-10-CM/icd10cm_order_2024.txt"
-            self.target_dict = icd_10_chapters
-            self.df = self.generate_icd_df_10()
+        self.flag = self.check_existence()
+        self.icd_dict = icd_chapters["{}".format(self.version)]
+        self.path = self.icd_dict["path"]
+        self.target_dict = self.icd_dict["target_dict"]
+
+    def check_existence(self):
+        data_path = os.path.join(os.path.dirname(__file__), "result/icd_{}.csv".format(self.version))
+
+        return os.path.isfile(data_path)
+
+    def get_dataframe(self):
+        if self.flag:
+            df = pd.read_csv(os.path.join(os.path.dirname(__file__), "result/icd_{}.csv".format(self.version)))
+        else:
+            print("Generating icd_{}.csv...".format(self.version))
+            df = self.generate_icd_df()
+
+        return df
 
     def _get_icd_block(self, icd_code):
         if self.version == 9:
@@ -43,7 +54,6 @@ class ICD:
                 raise ValueError("Invalid version")
 
             if icd_block in blocks:
-                exist_flag = True
                 return chapter, value["title"]
             else:
                 continue
