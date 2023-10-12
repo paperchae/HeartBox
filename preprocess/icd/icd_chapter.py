@@ -88,3 +88,12 @@ icd_10_chapters = {
     "XXII": {"block": "U00-U99",
              "title": "Codes for special purposes"}
 }
+
+icd_chapters = {
+    "9": {"target_dict": icd_9_chapters,
+          "path": "ICD-9-CM-v32/CMS32_DESC_LONG_SHORT_DX.xlsx"
+          },
+    "10": {"target_dict": icd_10_chapters,
+           "path": "ICD-10-CM/icd10cm_order_2024.txt"
+           }
+}

@@ -47,27 +47,6 @@ class HOSP:
 
         print("Reading diagnoses_icd.csv.gz...")
 
-        def _retrieve_chapter_title(target_title):
-            """
-            Find the chapter title from the target diagnosis per icd version
-            :param target_title: target diagnosis
-            """
-            version = [icd_9_chapters, icd_10_chapters]
-            title = {"9": 0, "10": 0}
-            version_cnt = 9
-            for v in version:
-                for chap, value in v.items():
-                    if target_title.lower() in value["title"].lower():
-                        title[str(version_cnt)] = value["title"]
-                    else:
-                        continue
-                version_cnt += 1
-
-            if all(list(title.values())):
-                return title
-            else:
-                raise ValueError("Invalid chapter, check icd_chapter.py")
-
         # Find the chapter title from the target diagnosis per version
         chapter_titles = _retrieve_chapter_title(self.target_diagnoses)
 
