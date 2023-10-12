@@ -72,40 +72,42 @@ class ICD:
 
         return df
 
-    def generate_icd_df_10(self):
-        f = open(self.path, "r")
-        lines = f.readlines()
-
+    def generate_icd_df(self):
         df_list = []
 
-        for l in tqdm(lines, total=len(lines)):
-            icd_code = l[6:14].strip()
-            chapter, title = self._check_chapter(icd_code)
-            is_header = True if l[14] == '0' else False
-            short_desc = l[16:77].strip()
-            long_desc = l[77:-1]
-            df_list.append(self._generate_row([chapter, icd_code, title, is_header, short_desc, long_desc]))
+        if self.version == 9:
+            df = pd.read_excel(self.path)
 
-        icd_df = pd.concat(df_list, ignore_index=True)
+            for idx, row in tqdm(df.iterrows(), total=len(df), desc="ICD 9 Data..."):
+                icd_code = row["DIAGNOSIS CODE"]
+                try:
+                    chapter, title = self._check_chapter(icd_code)
+                except:
+                    chapter, title = "None", "None"
+                short_desc = row["SHORT DESCRIPTION"]
+                long_desc = row["LONG DESCRIPTION"]
+                df_list.append(self._generate_row([chapter, icd_code, title, short_desc, long_desc]))
 
-        return icd_df
+        elif self.version == 10:
+            f = open(self.path, "r")
+            lines = f.readlines()
 
-    def generate_icd_df_9(self):
-        df = pd.read_excel(self.path)
-
-        df_list = []
-
-        for idx, row in tqdm(df.iterrows(), total=len(df)):
-            icd_code = row["DIAGNOSIS CODE"]
-            try:
+            for l in tqdm(lines, total=len(lines), desc="ICD 10 Data..."):
+                icd_code = l[6:14].strip()
                 chapter, title = self._check_chapter(icd_code)
-            except:
-                chapter, title = "None", "None"
-            short_desc = row["SHORT DESCRIPTION"]
-            long_desc = row["LONG DESCRIPTION"]
-            df_list.append(self._generate_row([chapter, icd_code, title, short_desc, long_desc]))
+                is_header = True if l[14] == '0' else False
+                short_desc = l[16:77].strip()
+                long_desc = l[77:-1]
+                df_list.append(self._generate_row([chapter, icd_code, title, is_header, short_desc, long_desc]))
+
+        else:
+            raise ValueError("Invalid version")
 
         icd_df = pd.concat(df_list, ignore_index=True)
+
+        if not self.flag:
+            icd_df.to_csv("result/icd_{}.csv".format(self.version), index=False)
+
         return icd_df
 
 
