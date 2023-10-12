@@ -111,6 +111,34 @@ class ICD:
         return icd_df
 
 
+def retrieve_chapter_title(target_title):
+    """
+    Find the chapter title from the target diagnosis per icd version
+    :param target_title: target diagnosis
+
+    :return: chapter title related to the target diagnosis title
+    """
+    version = [x["target_dict"] for x in icd_chapters.values()]
+    title = {"9": 0, "10": 0}
+    version_cnt = 9
+
+    # Search related chapter title from icd chapters
+    for v in version:
+        for chap, value in v.items():
+            if target_title.lower() in value["title"].lower():
+                title[str(version_cnt)] = value["title"]
+                break
+            else:
+                continue
+        version_cnt += 1
+
+    # If there is no matched chapter title with target title, raise ValueError
+    if all(list(title.values())):
+        return title
+    else:
+        raise ValueError("Invalid chapter, check icd_chapter.py")
+
+
 if __name__ == "__main__":
     icd_9_df = ICD(version=9).df
     icd_9_df.to_csv("result/icd_9.csv", index=False)
