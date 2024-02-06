@@ -194,7 +194,7 @@ def main(cfg) -> None:
 
 if __name__ == "__main__":
     root_path = (
-        "/home/paperc/PycharmProjects/VUNO_HATIV_RECRUITING_PROJECT/data/MIMIC_ECG/"
+        "/home/paperc/PycharmProjects/HeartBox/data/MIMIC_ECG/"
     )
 
     for roots, dirs, files in os.walk(root_path):
