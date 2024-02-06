@@ -55,6 +55,6 @@ test:
 
 wandb:
   flag: False                           # If True, log will be sent to wandb
-  project: VUNO
+  project: ECG
   entity: paperchae
 
